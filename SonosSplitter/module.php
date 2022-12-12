@@ -39,14 +39,6 @@ class SonosSplitter extends IPSModule
         parent::ApplyChanges();
 
         // create profiles
-        $this->RegisterProfileIntegerEx('SONOS.Status', 'Information', '', '', [
-            [0, $this->Translate('previous'),   '', -1],
-            [1, $this->Translate('play'),       '', -1],
-            [2, $this->Translate('pause'),      '', -1],
-            [3, $this->Translate('stop'),       '', -1],
-            [4, $this->Translate('next'),       '', -1],
-            [5, $this->Translate('transition'), '', -1]
-        ]);
         $this->RegisterProfileIntegerEx('SONOS.PlayMode', 'Information', '', '', [
             [0, $this->Translate('Normal'),             '', -1],
             [1, $this->Translate('Repeat all'),         '', -1],

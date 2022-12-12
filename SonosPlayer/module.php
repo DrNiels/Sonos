@@ -9,6 +9,12 @@ require_once __DIR__ . '/getSonos.php';
 
 class SonosPlayer extends IPSModule
 {
+    const PREVIOUS = 0;
+    const STOP = 1;
+    const PLAY = 2;
+    const PAUSE = 3;
+    const NEXT = 4;
+
     use VariableProfile;
     use CommonFunctions;
     use GetSonos;
@@ -85,11 +91,11 @@ class SonosPlayer extends IPSModule
             $this->EnableAction('Radio');
         }
         if (!@$this->GetIDForIdent('Status')) {
-            $this->RegisterVariableInteger('Status', $this->Translate('Status'), 'SONOS.Status', $positions['Status']);
+            $this->RegisterVariableInteger('Status', $this->Translate('Status'), '~PlaybackPreviousNext', $positions['Status']);
             $this->EnableAction('Status');
         }
         if (!@$this->GetIDForIdent('Volume')) {
-            $this->RegisterVariableInteger('Volume', $this->Translate('Volume'), 'SONOS.Volume', $positions['Volume']);
+            $this->RegisterVariableInteger('Volume', $this->Translate('Volume'), '~Volume', $positions['Volume']);
             $this->EnableAction('Volume');
         }
         if (!@$this->GetIDForIdent('Playlist')) {
@@ -214,10 +220,10 @@ class SonosPlayer extends IPSModule
                 IPS_SetHidden($this->RegisterVariableString('ContentStream', $this->Translate('Content Stream'), '', $positions['ContentStream']), true);
             }
             if (!@$this->GetIDForIdent('Artist')) {
-                IPS_SetHidden($this->RegisterVariableString('Artist', $this->Translate('Artist'), '', $positions['Artist']), true);
+                $this->RegisterVariableString('Artist', $this->Translate('Artist'), '~Artist', $positions['Artist']);
             }
             if (!@$this->GetIDForIdent('Title')) {
-                IPS_SetHidden($this->RegisterVariableString('Title', $this->Translate('Title'), '', $positions['Title']), true);
+                $this->RegisterVariableString('Title', $this->Translate('Title'), '~Song', $positions['Title']);
             }
             if (!@$this->GetIDForIdent('Album')) {
                 IPS_SetHidden($this->RegisterVariableString('Album', $this->Translate('Album'), '', $positions['Album']), true);
@@ -1295,7 +1301,7 @@ class SonosPlayer extends IPSModule
         if ($targetInstance === $this->InstanceID) {
             $sonos = $this->getSonosAccess();
 
-            SetValue($this->GetIDForIdent('Status'), 1);
+            SetValue($this->GetIDForIdent('Status'), self::PLAY);
             $this->SendDebug(__FUNCTION__ . '->sonos', 'Play()', 0);
             $sonos->Play();
         } else {
@@ -2650,19 +2656,19 @@ class SonosPlayer extends IPSModule
                 break;
             case 'Status':
                 switch ($Value) {
-                    case 0: //Prev
+                    case self::PREVIOUS:
                         $this->Previous();
                         break;
-                    case 1: //Play
+                    case self::PLAY:
                         $this->Play();
                         break;
-                    case 2: //Pause
+                    case self::PAUSE:
                         $this->Pause();
                         break;
-                    case 3: //Stop
+                    case self::STOP:
                         $this->Stop();
                         break;
-                    case 4: //Next
+                    case self::NEXT:
                         $this->Next();
                         break;
                 }
@@ -2771,7 +2777,7 @@ class SonosPlayer extends IPSModule
         if ($targetInstance === $this->InstanceID) {
             $sonos = $this->getSonosAccess();
 
-            SetValue($this->GetIDForIdent('Status'), 2);
+            SetValue($this->GetIDForIdent('Status'), self::PAUSE);
             $this->SendDebug(__FUNCTION__ . '->sonos', 'GetTransportInfo()', 0);
             if ($sonos->GetTransportInfo() == 1) {
                 $this->SendDebug(__FUNCTION__ . '->sonos', 'Pause()', 0);
@@ -2797,7 +2803,7 @@ class SonosPlayer extends IPSModule
         if ($targetInstance === $this->InstanceID) {
             $sonos = $this->getSonosAccess();
 
-            SetValue($this->GetIDForIdent('Status'), 3);
+            SetValue($this->GetIDForIdent('Status'), self::STOP);
             $this->SendDebug(__FUNCTION__ . '->sonos', 'GetTransportInfo()', 0);
             if ($sonos->GetTransportInfo() == 1) {
                 $this->SendDebug(__FUNCTION__ . '->sonos', 'Stop()', 0);
