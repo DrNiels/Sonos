@@ -14,6 +14,7 @@ class SonosPlayer extends IPSModule
     const PLAY = 2;
     const PAUSE = 3;
     const NEXT = 4;
+    const TRANSITIONING = 5;
 
     use VariableProfile;
     use CommonFunctions;
@@ -516,7 +517,7 @@ class SonosPlayer extends IPSModule
                 $Settings['mute'] = $sonos->GetMute();
 
                 // pause all players
-                if ($Settings['transportInfo'] == 1) {
+                if ($Settings['transportInfo'] == self::PAUSE) {
                     try {
                         $this->SendDebug(__FUNCTION__ . '->prepareAllPlayGrouping->sonos', 'Pause()', 0);
                         $sonos->Pause();
@@ -635,14 +636,14 @@ class SonosPlayer extends IPSModule
                 }
 
                 // play again
-                if ($Settings['transportInfo'] == 1) {
+                if ($Settings['transportInfo'] == self::PLAY) {
                     try {
                         $this->SendDebug(__FUNCTION__ . '->resetPlayGrouping->sonos', 'Play()', 0);
                         $sonos->Play();
                         $this->SendDebug(__FUNCTION__, 'waiting until it is really playing...', 0);
                         for ($i = 0; $i < 10; $i++) {
                             $transportInfo = $sonos->GetTransportInfo();
-                            if ($transportInfo !== 1) {
+                            if ($transportInfo !== self::PLAY) {
                                 IPS_Sleep(200);
                             } else {
                                 $this->SendDebug(__FUNCTION__, 'done, now it is playing.', 0);
@@ -1371,7 +1372,7 @@ class SonosPlayer extends IPSModule
             if (!$isGroupCoordinator) {
                 $this->SendDebug(__FUNCTION__ . '->sonos', 'SetAVTransportURI(\'\')', 0);
                 $sonos->SetAVTransportURI(''); // Set itself as source, so it is removed from Group
-            } elseif ($transportInfo == 1) {
+            } elseif ($transportInfo == self::PLAY) {
                 try {
                     $this->SendDebug(__FUNCTION__ . '->sonos', 'Pause()', 0);
                     $sonos->Pause();
@@ -1420,7 +1421,7 @@ class SonosPlayer extends IPSModule
             $sonos->Play();
             IPS_Sleep(500);
             $fileTransportInfo = $sonos->GetTransportInfo();
-            while ($fileTransportInfo == 1 || $fileTransportInfo == 5) {
+            while ($fileTransportInfo == self::PLAY || $fileTransportInfo == self::TRANSITIONING) {
                 IPS_Sleep(200);
                 $fileTransportInfo = $sonos->GetTransportInfo();
             }
@@ -1461,13 +1462,13 @@ class SonosPlayer extends IPSModule
         }
 
         // If it was playing before, play again
-        if ($transportInfo == 1) {
+        if ($transportInfo == self::PLAY) {
             $this->SendDebug(__FUNCTION__ . '->sonos', 'Play()', 0);
             $sonos->Play();
             $this->SendDebug(__FUNCTION__, 'waiting until it is really playing...', 0);
             for ($i = 0; $i < 10; $i++) {
                 $transportInfo = $sonos->GetTransportInfo();
-                if ($transportInfo !== 1) {
+                if ($transportInfo !== self::PLAY) {
                     IPS_Sleep(200);
                 } else {
                     $this->SendDebug(__FUNCTION__, 'done, now it is playing.', 0);
@@ -1568,7 +1569,7 @@ class SonosPlayer extends IPSModule
             $sonos->Play();
             IPS_Sleep(500);
             $fileTransportInfo = $sonos->GetTransportInfo();
-            while ($fileTransportInfo == 1 || $fileTransportInfo == 5) {
+            while ($fileTransportInfo == self::PLAY || $fileTransportInfo == self::TRANSITIONING) {
                 IPS_Sleep(200);
                 $fileTransportInfo = $sonos->GetTransportInfo();
             }
@@ -2364,12 +2365,14 @@ class SonosPlayer extends IPSModule
                 }
             } else {
                 $status = $sonos->GetTransportInfo();
-                SetValueInteger($vidStatus, $status);
+                if ($status != self::TRANSITIONING) {
+                    SetValueInteger($vidStatus, $status);
+                }
 
                 // Titelanzeige
                 $currentStation = 0;
 
-                if ($status != 1) {
+                if ($status != self::PLAY) {
                     // No title if not playing
                     $actuallyPlaying = '';
                 } else {
@@ -2779,7 +2782,7 @@ class SonosPlayer extends IPSModule
 
             SetValue($this->GetIDForIdent('Status'), self::PAUSE);
             $this->SendDebug(__FUNCTION__ . '->sonos', 'GetTransportInfo()', 0);
-            if ($sonos->GetTransportInfo() == 1) {
+            if ($sonos->GetTransportInfo() == self::PLAY) {
                 $this->SendDebug(__FUNCTION__ . '->sonos', 'Pause()', 0);
                 $sonos->Pause();
             }
@@ -2805,7 +2808,7 @@ class SonosPlayer extends IPSModule
 
             SetValue($this->GetIDForIdent('Status'), self::STOP);
             $this->SendDebug(__FUNCTION__ . '->sonos', 'GetTransportInfo()', 0);
-            if ($sonos->GetTransportInfo() == 1) {
+            if ($sonos->GetTransportInfo() == self::STOP) {
                 $this->SendDebug(__FUNCTION__ . '->sonos', 'Stop()', 0);
                 $sonos->Stop();
             }

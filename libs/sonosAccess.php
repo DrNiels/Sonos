@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../SonosPlayer/module.php';
 // SONOS Acces Handler
 // using PHP SoapClient
 
@@ -349,13 +350,13 @@ class SonosAccess
 
         switch ($returnContent['CurrentTransportState']) {
           case 'PLAYING':
-            return 1;
+            return SonosPlayer::PLAY;
           case 'PAUSED_PLAYBACK':
-            return 2;
+            return SonosPlayer::PAUSE;
           case 'STOPPED':
-            return 3;
+            return SonosPlayer::STOP;
           case 'TRANSITIONING':
-            return 5;
+            return SonosPlayer::TRANSITIONING;
           default:
             throw new Exception('Unknown Transport State: ' . $returnContent['CurrentTransportState']);
         }
